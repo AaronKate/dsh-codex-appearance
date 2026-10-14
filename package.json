@@ -1,8 +1,9 @@
 {
   "name": "dsh-codex-appearance",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Codex-inspired appearance controls for DeepSeek Harness",
   "keywords": ["deepseek-harness", "dsh-plugin", "theme", "appearance"],
+  "license": "MIT",
   "repository": {"type": "git", "url": "git+https://github.com/zhongjiadeng-cmd/dsh-codex-appearance.git"},
   "homepage": "https://github.com/zhongjiadeng-cmd/dsh-codex-appearance",
   "type": "module",

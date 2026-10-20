@@ -8,10 +8,10 @@ Adds an Appearance page to DeepSeek Harness with a blue-gray preset, light/dark 
 
 ## 安装
 
-�?[Releases](https://github.com/AaronKate/dsh-codex-appearance/releases) 下载 `dsh-codex-appearance-0.2.5.tgz`，执行：
+�?[Releases](https://github.com/AaronKate/dsh-codex-appearance/releases) 下载 `dsh-codex-appearance-0.2.6.tgz`，执行：
 
 ```sh
-dsh plugin --profile desktop add ./dsh-codex-appearance-0.2.5.tgz
+dsh plugin --profile desktop add ./dsh-codex-appearance-0.2.6.tgz
 ```
 
 本地开发可在仓库根目录 `npm pack` 后从 `dist/` 安装打包产物�?

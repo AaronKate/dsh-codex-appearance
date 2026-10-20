@@ -1,6 +1,6 @@
 {
   "name": "dsh-codex-appearance",
-  "version": "0.2.20",
+  "version": "0.2.21",
   "description": "Codex-inspired appearance controls for DeepSeek Harness",
   "keywords": ["deepseek-harness", "dsh-plugin", "theme", "appearance"],
   "license": "MIT",

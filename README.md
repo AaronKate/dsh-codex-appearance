@@ -1,6 +1,6 @@
 # DeepSeek Harness 外观插件
 
-在设置中增加「外观」页，以 Codex 风格蓝灰为预设（浅色为护眼雾蓝调，深色为蓝灰深色）。支持跟随系统、浅色、深色、自定义颜色、字体与字号、侧边栏模糊、动态效果及对比度。另对行内代码底色、聊天中的文件链接颜色和代码块卡片底色做了自适应主题化。通过 Harness 的主题 token 和设置 section 扩展点工作；设置保存在当前桌面应用的本地浏览器存储中。
+在设置中增加「外观」页，以 Codex 风格蓝灰为预设（浅色为纯白底 + 蓝灰面板，深色为蓝灰深色）。支持跟随系统、浅色、深色、自定义颜色、字体与字号、侧边栏模糊、动态效果及对比度。另对行内代码底色、聊天中的文件链接颜色、代码块卡片底色与设置面板做了自适应主题化。通过 Harness 的主题 token 和设置 section 扩展点工作；设置保存在当前桌面应用的本地浏览器存储中。
 
 Adds an Appearance page to DeepSeek Harness with a blue-gray preset, light/dark modes, colors, typography and motion controls. This is an independent community plugin, not an official Codex or DeepSeek product.
 
@@ -8,10 +8,10 @@ Adds an Appearance page to DeepSeek Harness with a blue-gray preset, light/dark 
 
 ## 安装
 
-从 [Releases](https://github.com/zhongjiadeng-cmd/dsh-codex-appearance/releases) 下载 `dsh-codex-appearance.tgz`，执行：
+从 [Releases](https://github.com/AaronKate/dsh-codex-appearance/releases) 下载 `dsh-codex-appearance-0.2.1.tgz`，执行：
 
 ```sh
-dsh plugin --profile desktop add ./dsh-codex-appearance.tgz
+dsh plugin --profile desktop add ./dsh-codex-appearance-0.2.1.tgz
 ```
 
 本地开发可在仓库根目录 `npm pack` 后从 `dist/` 安装打包产物。

@@ -1,7 +1,7 @@
 {
   "name": "dsh-codex-appearance",
-  "version": "0.2.26",
-  "description": "Appearance controls for DeepSeek Harness: accent and background colours, fonts, type sizes, content width, contrast and motion.",
+  "version": "0.2.27",
+  "description": "Appearance controls for DeepSeek Harness: eye-comfort themes, accent and background colours, fonts, type sizes, content width, contrast and motion.",
   "keywords": ["deepseek-harness", "dsh-plugin", "theme", "appearance"],
   "license": "MIT",
   "repository": {"type": "git", "url": "git+https://github.com/zhongjiadeng-cmd/dsh-codex-appearance.git"},
@@ -14,8 +14,8 @@
     "meta": {
       "title": {"en": "Appearance", "zh": "外观"},
       "description": {
-        "en": "Adjust the DeepSeek Harness UI: accent and background colours, fonts, type sizes, font styles, content width, contrast and motion.",
-        "zh": "调整 DeepSeek Harness 的界面外观：强调色与背景、字体字号、字体样式、内容宽度、对比度与动态效果。"
+        "en": "Adjust the DeepSeek Harness UI: five eye-comfort themes, accent and background colours, fonts, type sizes, font styles, content width, contrast and motion.",
+        "zh": "调整 DeepSeek Harness 的界面外观：五套护眼主题、强调色与背景、字体字号、字体样式、内容宽度、对比度与动态效果。"
       }
     },
     "bundle": {"patch": "./cordis.patch.yml"},

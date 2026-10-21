@@ -6,6 +6,16 @@ Eye-comfort appearance controls for DeepSeek Harness: five light themes, accent 
 
 已在 Windows 上 DeepSeek Harness 0.2.0-rc.2 中验证安装、设置界面与浅色/深色主题效果。代码未调用操作系统专有 API。
 
+## 截图
+
+![五套护眼主题](assets/five-themes.png)
+
+![冷白与微暖对比](assets/warm-tone-compare.png)
+
+![三种暖调](assets/tone-variants.png)
+
+![对比度 0 / 50 / 100](assets/contrast-levels.png)
+
 ## 安装
 
 从 [Releases](https://github.com/AaronKate/dsh-codex-appearance/releases) 下载 `dsh-eye-comfort-0.3.0.tgz`，执行：

@@ -1,7 +1,7 @@
 {
   "name": "dsh-eye-comfort",
-  "version": "0.3.16",
-  "description": "Eye-comfort appearance controls for DeepSeek Harness: five light themes, paper-grain texture, accent and background colours, fonts, type sizes, content width, contrast and motion.",
+  "version": "0.3.17",
+  "description": "Eye-comfort appearance controls for DeepSeek Harness: five light and five dark themes, themed syntax and diff colours, scheduled switching, JSON import/export, paper-grain texture, fonts, type sizes, content width and contrast.",
   "keywords": ["deepseek-harness", "dsh-plugin", "theme", "appearance"],
   "license": "MIT",
   "repository": {"type": "git", "url": "git+https://github.com/AaronKate/dsh-codex-appearance.git"},
@@ -14,8 +14,8 @@
     "meta": {
       "title": {"en": "Eye Comfort", "zh": "护眼外观"},
       "description": {
-        "en": "Adjust the DeepSeek Harness UI: five eye-comfort themes, accent and background colours, fonts, type sizes, font styles, content width, contrast and motion.",
-        "zh": "调整 DeepSeek Harness 的界面外观：五套护眼主题、强调色与背景、字体字号、字体样式、内容宽度、对比度与动态效果。"
+        "en": "Adjust the DeepSeek Harness UI: five light and five dark themes, themed syntax highlighting and diff colours, scheduled switching, JSON import/export, fonts, type sizes, content width and contrast.",
+        "zh": "调整 DeepSeek Harness 的界面外观：五套浅色与五套深色主题、语法高亮与 diff 配色、定时切换、设置导入导出、字体字号、内容宽度、对比度与动态效果。"
       }
     },
     "bundle": {"patch": "./cordis.patch.yml"},

@@ -113,12 +113,30 @@ check(light.tokens && light.tokens["--dsw-alias-bg-base"], "主题 token 层仍�
 check(/body :not\(pre\) > code \{[^}]*border: 1px solid #[0-9A-F]{6} !important/.test(light.css), "行内代码有发丝描边");
 check(/body :not\(pre\) > code \{[^}]*font-size: 0\.92em !important/.test(light.css), "行内代码字号按正文 0.92em");
 check(/box-decoration-break: clone/.test(light.css), "折行时每行独立圆角");
-// 会话进行时的「停止」按钮呼吸光晕：靠图标形状判定状态，不依赖 aria-label 文案
+// 会话进行时的「停止」按钮呼吸：单环、不闪、靠图标形状判定状态
 check(/GRgSLq_primary"\]:has\(svg rect\)/.test(light.css), "停止态按钮用 :has(svg rect) 命中");
 check(/GRgSLq_primary"\]\[aria-label\*="停止"\]/.test(light.css), "再有 aria-label 兜底一条");
 check(/@keyframes dca-breathe/.test(light.css), "呼吸关键帧已注入");
-check(/inset 0 0 0 3px rgb\(255 255 255 \/ \.95\)/.test(light.css), "峰值是 3px 内环（画在按钮内部，不会被裁切）");
-check(/scale\(1\.06\)/.test(light.css), "呼吸带 1.06 缩放，幅度肉眼可辨");
+check(/animation: dca-breathe 2\.6s/.test(light.css), "呼吸节奏 2.6s 正弦（不是心跳式快起快收）");
+check(/scale\(1\.035\)/.test(light.css), "峰值只放大 3.5%");
+check(!/brightness\(/.test(light.css), "没有 brightness 闪白（这就是迭代三「太强」的原因）");
+check(!/inset 0 0 0 [23]px #FFF/.test(light.css), "没有 inset 白环（否则蓝环+白环+本体三层）");
+// 环要对"看得见但不扎眼"：把 55% alpha 的环合成到卡片底上再算对比度
+function over(hex8, bg) {
+  const a = parseInt(hex8.slice(7, 9), 16) / 255;
+  const c = [1, 3, 5].map(i => Math.round(parseInt(hex8.slice(i, i + 2), 16) * a + parseInt(bg.slice(i, i + 2), 16) * (1 - a)));
+  return "#" + c.map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+const ringLight = (light.css.match(/0 0 0 2px (#[0-9A-F]{8})/) || [])[1];
+const ringOnCard = ringLight ? over(ringLight, "#F1F1EE") : null;
+console.log("  浅色环 =", ringLight, " 合成到卡片 =", ringOnCard, " 对比 =", ringOnCard ? contrast(ringOnCard, "#F1F1EE").toFixed(2) : "n/a");
+check(!!ringLight && contrast(ringOnCard, "#F1F1EE") >= 1.8 && contrast(ringOnCard, "#F1F1EE") <= 3.6,
+  `浅色环合成后对卡片 1.8–3.6:1（看得见但不扎眼，当前 ${ringOnCard ? contrast(ringOnCard, "#F1F1EE").toFixed(2) : "n/a"}）`);
+check(!!ringLight && contrast(ringOnCard, "#4176E6") >= 1.1, "环与按钮本体仍能分开（≥1.1:1）");
+// 「减少动态效果」开启时，整条呼吸规则不应出现
+const noMotion = run({ stored: { mode: "light", theme: "green", reducedMotion: "on" }, darkAttr: false });
+check(!/dca-breathe/.test(noMotion.css), "关闭动效时不注入呼吸动画");
+
 // 侧栏选中态：强调色淡染（豆沙绿 = #C3D0BC），且 token 与两条行规则同值
 const selRow = (light.css.match(/wnFoaW_selected"\] \{ background: (#[0-9A-F]{6}) !important/) || [])[1];
 console.log("  侧栏选中行 =", selRow, " 导航 token =", light.tokens["--dsw-specific-sidebar-nav-item-active"].light);
@@ -130,7 +148,8 @@ console.log("  行内代码底 =", grab(light.css, "dsw-alias-markdown-inline-co
 check(/body \[class\*="HOHHba_path"\] \{ color: #[0-9A-F]{6} !important; text-decoration: underline/.test(light.css), "改动卡片路径是链接色 + 下划线");
 check(!/\[class\*="HOHHba_row"\], body \[class\*="HOHHba_path"\]/.test(light.css), "灰色行色规则不再包含 HOHHba_path");
 check(/fileLink"\]:hover[^}]*text-decoration-style: solid/.test(light.css), "文件链接悬停转实线");
-check(/text-decoration: underline 1px dotted !important/.test(light.css), "下划线带 !important（压过 DSH 的 text-decoration:none）");
+check(/body \.hKdVjq_fileLink, body \.HOHHba_path, body \.K5rwea_fileName \{ text-decoration: underline 1px solid !important/.test(light.css), "文件链接静止态就是常驻实线下划线（不靠 hover）");
+check(/text-decoration-skip-ink: none !important/.test(light.css), "下划线跳过字形已关闭，长路径折行也连续");
 check(/\[class\*="fileLink"\], body \[class\*="fileMention"\]/.test(light.css), "文件引用（fileMention 带 </> 图标）也覆盖到了");
 
 // 2) 深色 + 纯黑，且色盲友好关
@@ -142,6 +161,11 @@ console.log("  keyword =", grab(dark.css, "shiki-token-keyword"));
 check(dark.tokens["--dsw-specific-sidebar-fill"].dark === "#090A0B", "深色侧栏基准跟随纯黑主题");
 check(grab(dark.css, "shiki-token-keyword") !== grab(light.css, "shiki-token-keyword"), "深色语法色与浅色不同");
 check(grab(dark.css, "dsw-alias-file-diff-added-bg") !== grab(light.css, "dsw-alias-file-diff-added-bg"), "深色 diff 底色与浅色不同");
+const ringDark = (dark.css.match(/0 0 0 2px (#[0-9A-F]{8})/) || [])[1];
+console.log("  深色环 =", ringDark, " 对深色卡片对比 =", ringDark ? contrast("#9FC2FF", "#2A313A").toFixed(2) : "n/a");
+check(!!ringDark && ringDark !== ringLight, "深色环与浅色不同色");
+check(!!ringDark && contrast("#9FC2FF", "#2A313A") >= 4, "深色环对深色卡片 ≥4:1（深底上要更亮才看得见）");
+check(/@keyframes dca-breathe/.test(dark.css), "深色也注入呼吸关键帧");
 // 深色链接色：必须来自强调色族，且和正文色明显不同（旧做法是朝白混 .62，接近正文）
 const darkLink = (dark.css.match(/\[class\*="fileLink"\][^{]*\{ color: (#[0-9A-F]{6})/) || [])[1];
 console.log("  深色链接色 =", darkLink, " 深色正文 =", dark.tokens["--dsw-alias-label-primary"].dark);

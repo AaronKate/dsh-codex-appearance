@@ -117,22 +117,32 @@ check(/box-decoration-break: clone/.test(light.css), "折行时每行独立圆�
 check(/GRgSLq_primary"\]:has\(svg rect\)/.test(light.css), "停止态按钮用 :has(svg rect) 命中");
 check(/GRgSLq_primary"\]\[aria-label\*="停止"\]/.test(light.css), "再有 aria-label 兜底一条");
 check(/@keyframes dca-breathe/.test(light.css), "呼吸关键帧已注入");
-check(/animation: dca-breathe 2\.6s/.test(light.css), "呼吸节奏 2.6s 正弦（不是心跳式快起快收）");
-check(/scale\(1\.035\)/.test(light.css), "峰值只放大 3.5%");
-check(!/brightness\(/.test(light.css), "没有 brightness 闪白（这就是迭代三「太强」的原因）");
-check(!/inset 0 0 0 [23]px #FFF/.test(light.css), "没有 inset 白环（否则蓝环+白环+本体三层）");
-// 环要对"看得见但不扎眼"：把 55% alpha 的环合成到卡片底上再算对比度
+check(/animation: dca-breathe 3s/.test(light.css), "呼吸节奏 3s 正弦（慢到像呼吸，不至于像告警）");
+check(/scale\(1\.045\)/.test(light.css), "峰值放大 4.5%（≈按钮半径 +0.8px，只作陪衬）");
+// 期望值一律用源码同一个 mix()/hexA() 现算：手写常量会差一档（#D7DDD2 vs 实际 #D7DDD1）。
+function mixHex(a, b, ratio) {
+  const q = Math.max(0, Math.min(1, ratio));
+  return "#" + [1, 3, 5].map(i => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - q) + parseInt(b.slice(i, i + 2), 16) * q).toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+function alphaHex(a) { return Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0").toUpperCase(); }
 function over(hex8, bg) {
   const a = parseInt(hex8.slice(7, 9), 16) / 255;
   const c = [1, 3, 5].map(i => Math.round(parseInt(hex8.slice(i, i + 2), 16) * a + parseInt(bg.slice(i, i + 2), 16) * (1 - a)));
   return "#" + c.map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
 }
-const ringLight = (light.css.match(/0 0 0 2px (#[0-9A-F]{8})/) || [])[1];
-const ringOnCard = ringLight ? over(ringLight, "#F1F1EE") : null;
-console.log("  浅色环 =", ringLight, " 合成到卡片 =", ringOnCard, " 对比 =", ringOnCard ? contrast(ringOnCard, "#F1F1EE").toFixed(2) : "n/a");
-check(!!ringLight && contrast(ringOnCard, "#F1F1EE") >= 1.8 && contrast(ringOnCard, "#F1F1EE") <= 3.6,
-  `浅色环合成后对卡片 1.8–3.6:1（看得见但不扎眼，当前 ${ringOnCard ? contrast(ringOnCard, "#F1F1EE").toFixed(2) : "n/a"}）`);
-check(!!ringLight && contrast(ringOnCard, "#4176E6") >= 1.1, "环与按钮本体仍能分开（≥1.1:1）");
+const GREEN = { accent: "#4A7A3A", content: "#E1E7DB" };
+const ringWanted = mixHex(GREEN.accent, "#0B2350", .42) + alphaHex(.92);
+const ringLight = (light.css.match(/0 0 0 3px (#[0-9A-F]{8})/) || [])[1];
+const ringOnCard = ringLight ? over(ringLight, GREEN.content) : null;
+console.log("  浅色环 =", ringLight, " 期望 =", ringWanted, " 合成到卡片 =", ringOnCard, " 对比 =", ringOnCard ? contrast(ringOnCard, GREEN.content).toFixed(2) : "n/a");
+check(!!ringLight && ringLight === ringWanted, `浅色环 = 强调色压深 42% × 92% α（同 mix() 现算 ${ringWanted}）`);
+check(!!ringOnCard && contrast(ringOnCard, GREEN.content) >= 4.5, `浅色环合成到卡片 ≥4.5:1（描边级；v5 的 1.76:1 就是"看不见"的根因，当前 ${ringOnCard ? contrast(ringOnCard, GREEN.content).toFixed(2) : "n/a"}）`);
+check(/0 0 0 3px #[0-9A-F]{8}, 0 0 16px 4px #[0-9A-F]{8}/.test(light.css), "峰值 = 3px 实体环 + 16px/4px 同色柔光（两层，同色相）");
+const glowLight = (light.css.match(/0 0 16px 4px (#[0-9A-F]{8})/) || [])[1];
+console.log("  浅色柔光 =", glowLight);
+check(!!glowLight && glowLight.slice(7, 9) === alphaHex(.34), `柔光 34% α（${alphaHex(.34)}），有存在感又不糊成一片`);
+check(/0 0 0 1px #[0-9A-F]{8}, 0 0 3px 0 #[0-9A-F]{8}/.test(light.css), "谷值保留 1px 发丝环（不归零，才像呼吸不像闪断）");
+check(!!ringOnCard && lum(ringOnCard) <= lum(GREEN.accent) * 0.93, `环比按钮本体暗一档（合成后 ${(lum(ringOnCard) / lum(GREEN.accent)).toFixed(2)}× 本体亮度），不会被读成"按钮变胖了"`);
 // 「减少动态效果」开启时，整条呼吸规则不应出现
 const noMotion = run({ stored: { mode: "light", theme: "green", reducedMotion: "on" }, darkAttr: false });
 check(!/dca-breathe/.test(noMotion.css), "关闭动效时不注入呼吸动画");
@@ -161,11 +171,17 @@ console.log("  keyword =", grab(dark.css, "shiki-token-keyword"));
 check(dark.tokens["--dsw-specific-sidebar-fill"].dark === "#090A0B", "深色侧栏基准跟随纯黑主题");
 check(grab(dark.css, "shiki-token-keyword") !== grab(light.css, "shiki-token-keyword"), "深色语法色与浅色不同");
 check(grab(dark.css, "dsw-alias-file-diff-added-bg") !== grab(light.css, "dsw-alias-file-diff-added-bg"), "深色 diff 底色与浅色不同");
-const ringDark = (dark.css.match(/0 0 0 2px (#[0-9A-F]{8})/) || [])[1];
-console.log("  深色环 =", ringDark, " 对深色卡片对比 =", ringDark ? contrast("#9FC2FF", "#2A313A").toFixed(2) : "n/a");
+const ringDark = (dark.css.match(/0 0 0 3px (#[0-9A-F]{8})/) || [])[1];
+const ringDarkOnCard = ringDark ? over(ringDark, "#2A313A") : null;
+console.log("  深色环 =", ringDark, " 合成到深色卡片 =", ringDarkOnCard, " 对比 =", ringDarkOnCard ? contrast(ringDarkOnCard, "#2A313A").toFixed(2) : "n/a");
 check(!!ringDark && ringDark !== ringLight, "深色环与浅色不同色");
-check(!!ringDark && contrast("#9FC2FF", "#2A313A") >= 4, "深色环对深色卡片 ≥4:1（深底上要更亮才看得见）");
+check(!!ringDark && ringDark === "#9FC2FF" + alphaHex(.78), `深色环是 78% α 的 #9FC2FF（#9FC2FF${alphaHex(.78)}）`);
+check(!!ringDarkOnCard && contrast(ringDarkOnCard, "#2A313A") >= 4, `深色环合成后对深色卡片 ≥4:1（当前 ${ringDarkOnCard ? contrast(ringDarkOnCard, "#2A313A").toFixed(2) : "n/a"}）`);
 check(/@keyframes dca-breathe/.test(dark.css), "深色也注入呼吸关键帧");
+check(/0 0 0 3px #[0-9A-F]{8}, 0 0 14px 4px #[0-9A-F]{8}/.test(dark.css), "深色峰值同样是 3px 实体环 + 14px/4px 柔光");
+const glowDark = (dark.css.match(/0 0 14px 4px (#[0-9A-F]{8})/) || [])[1];
+console.log("  深色柔光 =", glowDark);
+check(!!glowDark && glowDark.slice(7, 9) === alphaHex(.28), `深色柔光 28% α（${alphaHex(.28)}）`);
 // 深色链接色：必须来自强调色族，且和正文色明显不同（旧做法是朝白混 .62，接近正文）
 const darkLink = (dark.css.match(/\[class\*="fileLink"\][^{]*\{ color: (#[0-9A-F]{6})/) || [])[1];
 console.log("  深色链接色 =", darkLink, " 深色正文 =", dark.tokens["--dsw-alias-label-primary"].dark);
@@ -218,6 +234,51 @@ for (const [label, opts, want, forbid] of [
   const has = (t) => all.some((x) => x === t);
   for (const t of want) check(has(t), `[${label}] 设置页含「${t}」`);
   for (const t of forbid) check(!has(t), `[${label}] 设置页不含「${t}」`);
+}
+
+// 5) 设置项 → CSS 变量：设进去的值必须真的出现在注入的 CSS 里（不是只存进 state/localStorage）。
+//    以后新增设置项时，在 PROBES 里加一行 {label, stored, want} 即可；期望值由设置值现算，不写死。
+const bodyRule = (css) => {
+  const at = css.indexOf("--dsh-font-family-text");
+  if (at < 0) return "";
+  const a = css.lastIndexOf("{", at), z = css.indexOf("}", at);
+  return a < 0 || z < 0 ? "" : css.slice(a + 1, z);
+};
+const bodyDecl = (css, prop) => {
+  for (const part of bodyRule(css).split(";")) {
+    const k = part.indexOf(":");
+    if (k > 0 && part.slice(0, k).trim() === prop) { const v = part.slice(k + 1).trim(); return v || "(缺失)"; }
+  }
+  return "(缺失)";
+};
+const PROBES = [
+  { label: "界面字号 17 / 代码字号 16 / 行高舒适",
+    stored: { mode: "light", theme: "green", uiSize: 17, codeSize: 16, fontStyle: "comfortable" },
+    want: { uiSize: 17, codeSize: 16, lineHeight: "1.65" } },
+  { label: "界面字号 13 / 代码字号 11 / 行高紧凑",
+    stored: { mode: "light", theme: "green", uiSize: 13, codeSize: 11, fontStyle: "compact" },
+    want: { uiSize: 13, codeSize: 11, lineHeight: "1.3" } },
+];
+for (const p of PROBES) {
+  const out = run({ stored: p.stored, darkAttr: false });
+  const got = { uiSize: bodyDecl(out.css, "font-size"), codeSize: bodyDecl(out.css, "--dsh-code-font-size"), lineHeight: bodyDecl(out.css, "line-height") };
+  console.log(`  [${p.label}] body: font-size=${got.uiSize} --dsh-code-font-size=${got.codeSize} line-height=${got.lineHeight}`);
+  check(got.uiSize === `${p.want.uiSize}px`, `设置 uiSize=${p.want.uiSize} → body 的 font-size 输出 ${p.want.uiSize}px`);
+  check(got.codeSize === `${p.want.codeSize}px`, `设置 codeSize=${p.want.codeSize} → --dsh-code-font-size 输出 ${p.want.codeSize}px`);
+  check(got.lineHeight === p.want.lineHeight, `行高样式 ${p.stored.fontStyle} → body 的 line-height 输出 ${p.want.lineHeight}`);
+}
+// 6) 安装副本必须与源码逐字节一致（目录名以实际 node_modules 为准；未安装则跳过，不判失败）
+const crypto = require("crypto");
+const INSTALL = "C:/Users/79294/.dsh/profiles/desktop/node_modules/dsh-eye-comfort/lib/client.js";
+const SRC = path.join(__dirname, "..", "lib", "client.js");
+const sha = (f) => crypto.createHash("sha256").update(fs.readFileSync(f)).digest("hex");
+if (fs.existsSync(INSTALL)) {
+  const a = sha(SRC), b = sha(INSTALL);
+  console.log(`  源码 sha=${a.slice(0, 8)}  安装副本 sha=${b.slice(0, 8)}`);
+  console.log(`  副本路径 ${INSTALL}`);
+  check(a === b, `安装副本与源码逐字节一致（sha ${a.slice(0, 8)}）`);
+} else {
+  console.log(`  skip 安装副本检查：${INSTALL} 不存在`);
 }
 
 console.log(failures === 0 ? "ALL OK" : (failures + " 项失败"));

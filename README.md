@@ -13,7 +13,7 @@ Eye-comfort appearance controls for DeepSeek Harness: five light and five dark t
 - **语法高亮**：DSH 把着色器颜色暴露成 `--shiki-token-*`，插件按主题前景重新调制九个 token，并按「实际代码块底色」逐个校验对比度（正文级 4.5:1、注释 3.6:1）。
 - **diff**：`--dsw-alias-file-diff-*`（整行底色、行号槽、标记色）与 `--dsw-alias-code-diff-*`（代码块内叠加色）按纸面调制；开启「色盲友好 diff」后增删色相换成蓝／橙。
 - **链接色**：每套主题一个专属链接色，不再是统一蓝。冷色主题沿用自己的链接色；暖纸/绿纸换色相——米纸用深靛 `#4A3B6B`、豆沙绿用墨青 `#24596B`（正文是暖褐/墨绿，直接沿用链接色会变成「正文的另一档深浅」）。深色侧直接用主题强调色，仅在对比不足时提亮。所有文件链接常驻 1px 实线下划线（`text-decoration-skip-ink: none`，长路径折行也连续），悬停加深。
-- **会话进行时**：输入框右下角的发送按钮变成停止（■）时，按钮外缘有一圈 2.6s 的呼吸——单层 2px 中蓝环（合成后对卡片 2.3:1）+ 10px 柔光 + 3.5% 缩放；不做亮度闪、不加内白环（三层边界会「太跳」）。点击停止即消失；状态判定用图标形状（`:has(svg rect)`）而非文案，另留 `aria-label` 兜底；开启「减少动态效果」时整条不注入。
+- **会话进行时**：输入框右下角的发送按钮变成停止（■）时，按钮外缘有一圈 3s 的呼吸——3px 实体环（浅色由主题强调色压深 42%，合成对卡片 5.3–6.0:1）+ 16px/4px 同色相柔光 + 4.5% 缩放，谷值保留 1px/30% 发丝环（不归零，像呼吸不像闪断）；不做亮度闪、不加内白环。点击停止即消失；状态判定用图标形状（`:has(svg rect)`）而非文案，另留 `aria-label` 兜底；开启「减少动态效果」时整条不注入。
 - **选中态**：侧栏会话／搜索命中／导航选中统一为「侧栏底色 + 主题强调色 14%」，五套主题与侧栏的明度差都在 ΔL\* 4.5–6.3，看得出选中但不成块。
 - **定时切换**：「模式」里选「定时」，再设定「浅色起／深色起」两个时间点；跨零点自动折返，每 30 秒对一次表。
 - **导入导出**：设置导出为 JSON（颜色、字体、尺寸、模式全在里面），可在另一台机器导入；导入走一遍校验，非法值回落到默认。
@@ -30,10 +30,10 @@ Eye-comfort appearance controls for DeepSeek Harness: five light and five dark t
 
 ## 安装
 
-从 [Releases](https://github.com/AaronKate/dsh-codex-appearance/releases) 下载 `dsh-eye-comfort-0.3.19.tgz`，执行：
+从 [Releases](https://github.com/AaronKate/dsh-codex-appearance/releases) 下载 `dsh-eye-comfort-0.3.20.tgz`，执行：
 
 ```sh
-dsh plugin --profile desktop add ./dsh-eye-comfort-0.3.19.tgz
+dsh plugin --profile desktop add ./dsh-eye-comfort-0.3.20.tgz
 ```
 
 本地开发可在仓库根目录 `npm pack` 后从 `dist/` 安装打包产物。

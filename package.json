@@ -1,6 +1,6 @@
 {
   "name": "dsh-eye-comfort",
-  "version": "0.3.19",
+  "version": "0.3.20",
   "description": "Eye-comfort appearance controls for DeepSeek Harness: five light and five dark themes, themed syntax and diff colours, scheduled switching, JSON import/export, paper-grain texture, fonts, type sizes, content width and contrast.",
   "keywords": ["deepseek-harness", "dsh-plugin", "theme", "appearance"],
   "license": "MIT",

@@ -210,6 +210,10 @@ const late = run({ stored: { mode: "schedule", lightAt: "07:00", darkAt: "19:00"
 const hour = new Date().getHours();
 const expected = hour >= 7 && hour < 19 ? "light" : "dark";
 check(late.themes[late.themes.length - 1] === expected, `定时表按当前时间解析为 ${expected}`);
+// 极昼/极夜（纬度 90°，太阳整天不过地平线）：拿不到日出日落时必须退回固定时间，
+// 不能算出一堆 NaN 把主题卡在某个不存在的状态上。
+const polar = run({ stored: { mode: "schedule", sun: true, lat: 90, lon: 0, lightAt: `${hh}:00`, darkAt: `${hh}:00` }, darkAttr: false });
+check(polar.themes.length > 0 && polar.themes.every((t) => t === "light" || t === "dark"), `极昼极夜回退固定时间（${polar.themes.join(",")}）`);
 
 // 5) 设置页真的能渲染：用极简 React 桩把组件调一次，收集所有文字，检查新增控件的出现条件。
 function texts(node, out = []) {
@@ -227,6 +231,7 @@ for (const [label, opts, want, forbid] of [
   ["浅色", { stored: { mode: "light", theme: "green" }, darkAttr: false }, ["护眼主题", "模式", "定时", "色盲友好 diff", "导出设置", "导入设置"], ["深色主题", "定时切换"]],
   ["深色", { stored: { mode: "dark", darkTheme: "nord" }, darkAttr: true }, ["深色主题", "北境", "模式"], ["护眼主题"]],
   ["定时", { stored: { mode: "schedule", lightAt: "08:30", darkAt: "20:15" }, darkAttr: false }, ["定时切换", "08:30", "20:15"], []],
+  ["日出日落", { stored: { mode: "schedule", sun: true, lat: 39.9042, lon: 116.4074 }, darkAttr: false }, ["日出日落", "今日日出日落", "重新定位"], ["定时切换"]],
 ]) {
   const r = run(opts);
   let all = [];

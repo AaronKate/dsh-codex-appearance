@@ -161,7 +161,7 @@ const projBlock = (light.css.match(/\[class\*="wnFoaW_projectRow"\] \[class\*="w
 const projCollapsed = (projBlock.match(/color: (#[0-9A-F]{6})/) || [])[1];
 const projOpen = (light.css.match(/\[class\*="wnFoaW_arrowOpen"\]\) \[class\*="wnFoaW_title"\] \{\s*color: (#[0-9A-F]{6});/) || [])[1];
 console.log("  项目名（折叠）=", projCollapsed, " （展开）=", projOpen);
-check(/font-weight: 600/.test(projBlock), "项目名加粗到 600，读作组标题");
+check(!!projBlock && !/font-weight/.test(projBlock), "项目名不覆盖字重（保持原生常规字重）");
 check(!!projCollapsed && contrast(projCollapsed, sidebarGreen) >= 4.5, `折叠的项目名对侧栏底 ≥4.5:1（${projCollapsed ? contrast(projCollapsed, sidebarGreen).toFixed(2) : "n/a"}）—— 灰但要读得清`);
 check(!!projCollapsed && contrast(projCollapsed, sidebarGreen) < contrast(hoverColor, sidebarGreen), "折叠的项目名比展开态淡（灰）");
 check(!!projOpen && projOpen === hoverColor, "展开的工作区用正文色（:has(.wnFoaW_arrowOpen) 反查展开态）");

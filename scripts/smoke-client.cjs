@@ -157,7 +157,15 @@ check(/font-size: 13px/.test(sessBlock), "会话名降到 13px（项目名仍是
 check(!!sessColor && sessColor !== hoverColor, "会话名不是正文色（和项目名拉开）");
 check(!!sessColor && contrast(sessColor, sidebarGreen) >= 4.5, `会话名对侧栏底 ≥4.5:1（${sessColor ? contrast(sessColor, sidebarGreen).toFixed(2) : "n/a"}）—— 降一档但不能发虚`);
 check(!!hoverColor && sessColor === mixHex(hoverColor, sidebarGreen, .18), `会话色 = 正文朝侧栏底混 18%（同 mix() 现算 ${hoverColor ? mixHex(hoverColor, sidebarGreen, .18) : "n/a"}）`);
-check(/\[class\*="wnFoaW_projectRow"\] \[class\*="wnFoaW_title"\] \{ font-weight: 600; \}/.test(light.css), "项目名加粗到 600，读作组标题");
+const projBlock = (light.css.match(/\[class\*="wnFoaW_projectRow"\] \[class\*="wnFoaW_title"\] \{[^}]*\}/) || [])[0] || "";
+const projCollapsed = (projBlock.match(/color: (#[0-9A-F]{6})/) || [])[1];
+const projOpen = (light.css.match(/\[class\*="wnFoaW_arrowOpen"\]\) \[class\*="wnFoaW_title"\] \{\s*color: (#[0-9A-F]{6});/) || [])[1];
+console.log("  项目名（折叠）=", projCollapsed, " （展开）=", projOpen);
+check(/font-weight: 600/.test(projBlock), "项目名加粗到 600，读作组标题");
+check(!!projCollapsed && contrast(projCollapsed, sidebarGreen) >= 4.5, `折叠的项目名对侧栏底 ≥4.5:1（${projCollapsed ? contrast(projCollapsed, sidebarGreen).toFixed(2) : "n/a"}）—— 灰但要读得清`);
+check(!!projCollapsed && contrast(projCollapsed, sidebarGreen) < contrast(hoverColor, sidebarGreen), "折叠的项目名比展开态淡（灰）");
+check(!!projOpen && projOpen === hoverColor, "展开的工作区用正文色（:has(.wnFoaW_arrowOpen) 反查展开态）");
+check(/\[class\*="wnFoaW_projectRow"\]:hover \[class\*="wnFoaW_title"\]/.test(light.css), "悬停也提到正文色（可点暗示）");
 check(!!hoverColor && contrast(hoverColor, sidebarGreen) >= 7, `hover/选中回到正文色（${hoverColor ? contrast(hoverColor, sidebarGreen).toFixed(2) : "n/a"}:1）`);
 
 // 1b) 文件链接可见性：路径必须是链接色 + 常驻下划线，且不再被灰色行色规则波及
@@ -180,6 +188,11 @@ const sessDark = (sessDarkBlock.match(/color: (#[0-9A-F]{6})/) || [])[1];
 console.log("  深色会话名 =", sessDark);
 check(!!sessDark && sessDark !== sessColor, "深色会话名按深色调色板推导（与浅色不同）");
 check(!!sessDark && contrast(sessDark, "#090A0B") >= 4.5, `深色会话名对侧栏底 ≥4.5:1（${sessDark ? contrast(sessDark, "#090A0B").toFixed(2) : "n/a"}）`);
+const projDarkBlock = (dark.css.match(/\[class\*="wnFoaW_projectRow"\] \[class\*="wnFoaW_title"\] \{[^}]*\}/) || [])[0] || "";
+const projDark = (projDarkBlock.match(/color: (#[0-9A-F]{6})/) || [])[1];
+console.log("  深色折叠项目名 =", projDark);
+check(!!projDark && projDark !== projCollapsed, "深色折叠项目名按深色调色板推导（与浅色不同）");
+check(!!projDark && contrast(projDark, "#090A0B") >= 4.5, `深色折叠项目名对侧栏底 ≥4.5:1（${projDark ? contrast(projDark, "#090A0B").toFixed(2) : "n/a"}）`);
 check(grab(dark.css, "shiki-token-keyword") !== grab(light.css, "shiki-token-keyword"), "深色语法色与浅色不同");
 check(grab(dark.css, "dsw-alias-file-diff-added-bg") !== grab(light.css, "dsw-alias-file-diff-added-bg"), "深色 diff 底色与浅色不同");
 const fillDark = dark.tokens["--dsw-alias-button-info-fill"].dark;

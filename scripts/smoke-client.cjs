@@ -117,7 +117,7 @@ check(/box-decoration-break: clone/.test(light.css), "折行时每行独立圆�
 check(/GRgSLq_primary"\]:has\(svg rect\)/.test(light.css), "停止态按钮用 :has(svg rect) 命中");
 check(/GRgSLq_primary"\]\[aria-label\*="停止"\]/.test(light.css), "再有 aria-label 兜底一条");
 check(/@keyframes dca-aurora/.test(light.css), "光环关键帧已注入");
-check(/animation: dca-aurora 5s ease-in-out infinite/.test(light.css), "5s 一轮连续流动（不是一闪一闪的告警节奏）");
+check(/animation: dca-aurora 4s linear infinite/.test(light.css), "4s 一圈 linear 匀速（不是一闪一闪的告警节奏）");
 // 期望值一律用源码同一个 mix()/hexA() 现算：手写常量会差一档（#D7DDD2 vs 实际 #D7DDD1）。
 function mixHex(a, b, ratio) {
   const q = Math.max(0, Math.min(1, ratio));
@@ -130,9 +130,9 @@ function over(hex8, bg) {
   return "#" + c.map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
 }
 const GREEN = { accent: "#4A7A3A", content: "#E1E7DB" };
-// Siri 式光环：三层同几何阴影 + 三色绕强调色色相排开 + 5s 颜色换位流动，不做缩放。
+// Siri 式光环：底层两层柔光 + 一圈「轨道光点」绕按钮移动 + 三色色相漂移，不做缩放。
 const auroraColors = (css) => {
-  const m = css.match(/0 0 4px 1px (#[0-9A-F]{8}), 0 0 10px 3px (#[0-9A-F]{8}), 0 0 18px 6px (#[0-9A-F]{8})/);
+  const m = css.match(/0 0 5px 1px (#[0-9A-F]{8}), 0 0 12px 4px (#[0-9A-F]{8}), -?\d+px -?\d+px 14px 4px (#[0-9A-F]{8})/);
   return m ? [m[1], m[2], m[3]] : [];
 };
 const hueOf = (hex) => {
@@ -146,21 +146,29 @@ const hueOf = (hex) => {
 const circular = (a, b) => { const d = Math.abs(a - b) % 360; return Math.min(d, 360 - d); };
 const aur = auroraColors(light.css);
 console.log("  光环三色 =", aur.join(" "));
-check(aur.length === 3, "Siri 光环三层：内晕 4px/1px、中晕 10px/3px、外晕 18px/6px（全模糊、无硬边）");
+check(aur.length === 3, "Siri 光环结构：两层柔光（5px/1px、12px/4px）+ 轨道光点（14px/4px，带偏移）");
 const aurHues = aur.map(c => hueOf(c.slice(0, 7)));
 const accentHue = hueOf(GREEN.accent);
 const hueDiffs = aurHues.map(h => Math.round(circular(h, accentHue)));
 console.log("  色相 =", aurHues.map(h => Math.round(h)), " 与强调色差 =", hueDiffs, " 强调色相 =", Math.round(accentHue));
-check(Math.max(...hueDiffs) >= 25, `至少一侧偏离强调色 ≥25°（${Math.max(...hueDiffs)}°），才是"多色流动"而不是单色圈`);
-check(circular(aurHues[0], aurHues[2]) >= 40, `两侧色相之间拉开 ≥40°（${Math.round(circular(aurHues[0], aurHues[2]))}°），三层轮换才看得出追赶`);
-check(aur.map(c => c.slice(7, 9)).join(",") === `${alphaHex(.85)},${alphaHex(.50)},${alphaHex(.26)}`, `三层 α = 85/50/26（${aur.map(c => c.slice(7, 9)).join("/")}）`);
-const innerOnCard = aur.length ? over(aur[0], GREEN.content) : null;
-console.log("  内环合成到卡片 =", innerOnCard, " 对比 =", innerOnCard ? contrast(innerOnCard, GREEN.content).toFixed(2) : "n/a");
-check(!!innerOnCard && contrast(innerOnCard, GREEN.content) >= 3, `内环对卡片 ≥3:1（${innerOnCard ? contrast(innerOnCard, GREEN.content).toFixed(2) : "n/a"}），停止态一眼认得出`);
-check(/animation: dca-aurora 5s ease-in-out infinite/.test(light.css), "5s 一轮、ease-in-out，连续流动而不是一通一闪");
+check(Math.max(...hueDiffs) >= 25, `至少一侧偏离强调色 ≥25°（${Math.max(...hueDiffs)}°），才有"多色"可言`);
+check(circular(aurHues[0], aurHues[2]) >= 40, `两侧色相之间拉开 ≥40°（${Math.round(circular(aurHues[0], aurHues[2]))}°）`);
+check(aur.map(c => c.slice(7, 9)).join(",") === `${alphaHex(.60)},${alphaHex(.32)},${alphaHex(.80)}`, `三层 α = 60/32/80（${aur.map(c => c.slice(7, 9)).join("/")}）`);
+const innerOnCard = aur.length ? over(aur[2], GREEN.content) : null;
+console.log("  光点合成到卡片 =", innerOnCard, " 对比 =", innerOnCard ? contrast(innerOnCard, GREEN.content).toFixed(2) : "n/a");
+check(!!innerOnCard && contrast(innerOnCard, GREEN.content) >= 3, `轨道光点对卡片 ≥3:1（${innerOnCard ? contrast(innerOnCard, GREEN.content).toFixed(2) : "n/a"}），转起来才看得见`);
+check(/animation: dca-aurora 4s linear infinite/.test(light.css), "4s 一圈 linear 匀速（绕圈不能 ease-in-out，否则一顿一顿）");
 const kfAt = light.css.indexOf("@keyframes dca-aurora");
-const kf = kfAt < 0 ? "" : light.css.slice(kfAt, kfAt + 600);
-check(/0%, 100%/.test(kf) && /33%/.test(kf) && /66%/.test(kf), "三个关键帧：颜色在三层阴影之间换位（追赶）");
+const kfEnd = kfAt < 0 ? -1 : light.css.indexOf("} }", kfAt);
+const kf = kfAt < 0 || kfEnd < 0 ? "" : light.css.slice(kfAt, kfEnd + 3);
+const stops = (kf.match(/([\d.]+)% \{/g) || []).map(x => parseFloat(x));
+console.log("  关键帧 =", stops.join(", "));
+check(stops.length === 9 && stops[0] === 0 && stops[8] === 100, `9 个关键帧（0…100，每 12.5% 一格），实际 ${stops.length} 个`);
+const offsets = [...kf.matchAll(/(-?\d+)px (-?\d+)px 14px 4px/g)].map(m => [Number(m[1]), Number(m[2])]);
+const distinct = (i) => new Set(offsets.map(o => o[i])).size;
+console.log("  轨道偏移 =", offsets.map(o => o.join(",")).join(" | "));
+check(offsets.length === 9 && distinct(0) >= 5 && distinct(1) >= 5, `光点在 x/y 上各出现 ≥5 个不同位置（x ${distinct(0)} 个 / y ${distinct(1)} 个），是真的在绕而不是原地发光`);
+check(offsets.some(([x, y]) => x === 0 && Math.abs(y) >= 8) && offsets.some(([x, y]) => Math.abs(x) >= 8 && y === 0), "上下左右都走到了（不是只沿一个轴来回）");
 const kfColors = [...new Set((kf.match(/#[0-9A-F]{8}/g) || []).map(c => c.slice(0, 7)))];
 check(kfColors.length === 3, `关键帧里只有那三种基色（${kfColors.join(" ")}）`);
 check(!/scale\(|brightness\(|translateY/.test(kf), "不缩放、不叠 brightness、不改 transform（上一版「按钮在胀」就是它）");

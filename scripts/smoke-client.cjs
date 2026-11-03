@@ -146,6 +146,19 @@ console.log("  侧栏选中行 =", selRow, " 导航 token =", light.tokens["--ds
 check(selRow === "#C3D0BC", "会话选中行 = 侧栏底色 + accent 14%");
 check(light.tokens["--dsw-specific-sidebar-nav-item-active"].light === selRow, "导航选中 token 与行规则同值");
 console.log("  行内代码底 =", grab(light.css, "dsw-alias-markdown-inline-code"), " （豆沙绿应为 #D7DDD1）");
+// 2b) 侧栏层级：项目名与会话名同款 → 会话降一档、项目名加粗，且都还得读得清
+const sessBlock = (light.css.match(/\[class\*="wnFoaW_sessionRow"\]:not\(\[class\*="wnFoaW_archived"\]\)[^{]*\{[^}]*\}/) || [])[0] || "";
+const sessColor = (sessBlock.match(/color: (#[0-9A-F]{6})/) || [])[1];
+const hoverBlock = (light.css.match(/\[class\*="wnFoaW_sessionRow"\]:hover \[class\*="wnFoaW_title"\],[^}]*\}/) || [])[0] || "";
+const hoverColor = (hoverBlock.match(/color: (#[0-9A-F]{6})/) || [])[1];
+const sidebarGreen = "#D7DED1";
+console.log("  会话名 =", sessColor, " hover/选中 =", hoverColor);
+check(/font-size: 13px/.test(sessBlock), "会话名降到 13px（项目名仍是 14px）");
+check(!!sessColor && sessColor !== hoverColor, "会话名不是正文色（和项目名拉开）");
+check(!!sessColor && contrast(sessColor, sidebarGreen) >= 4.5, `会话名对侧栏底 ≥4.5:1（${sessColor ? contrast(sessColor, sidebarGreen).toFixed(2) : "n/a"}）—— 降一档但不能发虚`);
+check(!!hoverColor && sessColor === mixHex(hoverColor, sidebarGreen, .18), `会话色 = 正文朝侧栏底混 18%（同 mix() 现算 ${hoverColor ? mixHex(hoverColor, sidebarGreen, .18) : "n/a"}）`);
+check(/\[class\*="wnFoaW_projectRow"\] \[class\*="wnFoaW_title"\] \{ font-weight: 600; \}/.test(light.css), "项目名加粗到 600，读作组标题");
+check(!!hoverColor && contrast(hoverColor, sidebarGreen) >= 7, `hover/选中回到正文色（${hoverColor ? contrast(hoverColor, sidebarGreen).toFixed(2) : "n/a"}:1）`);
 
 // 1b) 文件链接可见性：路径必须是链接色 + 常驻下划线，且不再被灰色行色规则波及
 check(/body \[class\*="HOHHba_path"\] \{ color: #[0-9A-F]{6} !important; text-decoration: underline/.test(light.css), "改动卡片路径是链接色 + 下划线");
@@ -162,6 +175,11 @@ console.log("  bg-base =", dark.tokens["--dsw-alias-bg-base"]);
 console.log("  sidebar-fill =", dark.tokens["--dsw-specific-sidebar-fill"]);
 console.log("  keyword =", grab(dark.css, "shiki-token-keyword"));
 check(dark.tokens["--dsw-specific-sidebar-fill"].dark === "#090A0B", "深色侧栏基准跟随纯黑主题");
+const sessDarkBlock = (dark.css.match(/\[class\*="wnFoaW_sessionRow"\]:not\(\[class\*="wnFoaW_archived"\]\)[^{]*\{[^}]*\}/) || [])[0] || "";
+const sessDark = (sessDarkBlock.match(/color: (#[0-9A-F]{6})/) || [])[1];
+console.log("  深色会话名 =", sessDark);
+check(!!sessDark && sessDark !== sessColor, "深色会话名按深色调色板推导（与浅色不同）");
+check(!!sessDark && contrast(sessDark, "#090A0B") >= 4.5, `深色会话名对侧栏底 ≥4.5:1（${sessDark ? contrast(sessDark, "#090A0B").toFixed(2) : "n/a"}）`);
 check(grab(dark.css, "shiki-token-keyword") !== grab(light.css, "shiki-token-keyword"), "深色语法色与浅色不同");
 check(grab(dark.css, "dsw-alias-file-diff-added-bg") !== grab(light.css, "dsw-alias-file-diff-added-bg"), "深色 diff 底色与浅色不同");
 const fillDark = dark.tokens["--dsw-alias-button-info-fill"].dark;

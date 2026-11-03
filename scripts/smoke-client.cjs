@@ -113,11 +113,9 @@ check(light.tokens && light.tokens["--dsw-alias-bg-base"], "主题 token 层仍�
 check(/body :not\(pre\) > code \{[^}]*border: 1px solid #[0-9A-F]{6} !important/.test(light.css), "行内代码有发丝描边");
 check(/body :not\(pre\) > code \{[^}]*font-size: 0\.92em !important/.test(light.css), "行内代码字号按正文 0.92em");
 check(/box-decoration-break: clone/.test(light.css), "折行时每行独立圆角");
-// 会话进行时的「停止」按钮光环：三层阴影换位流动，靠图标形状判定状态
-check(/GRgSLq_primary"\]:has\(svg rect\)/.test(light.css), "停止态按钮用 :has(svg rect) 命中");
-check(/GRgSLq_primary"\]\[aria-label\*="停止"\]/.test(light.css), "再有 aria-label 兜底一条");
-check(/@keyframes dca-aurora/.test(light.css), "光环关键帧已注入");
-check(/animation: dca-aurora 4s linear infinite/.test(light.css), "4s 一圈 linear 匀速（不是一闪一闪的告警节奏）");
+// 停止按钮跟 Codex 保持一致：静态圆钮，插件不注入任何光环/呼吸/缩放
+check(!/GRgSLq_primary/.test(light.css), "停止按钮完全交给 DSH 原生样式（插件不再写任何 GRgSLq_primary 规则）");
+check(!/dca-aurora/.test(light.css), "没有自造的光环关键帧");
 // 期望值一律用源码同一个 mix()/hexA() 现算：手写常量会差一档（#D7DDD2 vs 实际 #D7DDD1）。
 function mixHex(a, b, ratio) {
   const q = Math.max(0, Math.min(1, ratio));
@@ -130,52 +128,6 @@ function over(hex8, bg) {
   return "#" + c.map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
 }
 const GREEN = { accent: "#4A7A3A", content: "#E1E7DB" };
-// Siri 式光环：底层两层柔光 + 一圈「轨道光点」绕按钮移动 + 三色色相漂移，不做缩放。
-const auroraColors = (css) => {
-  const m = css.match(/0 0 5px 1px (#[0-9A-F]{8}), 0 0 12px 4px (#[0-9A-F]{8}), -?\d+px -?\d+px 14px 4px (#[0-9A-F]{8})/);
-  return m ? [m[1], m[2], m[3]] : [];
-};
-const hueOf = (hex) => {
-  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
-  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
-  if (!d) return 0;
-  if (max === r) return (((g - b) / d + (g < b ? 6 : 0)) * 60 + 360) % 360;
-  if (max === g) return ((b - r) / d + 2) * 60;
-  return ((r - g) / d + 4) * 60;
-};
-const circular = (a, b) => { const d = Math.abs(a - b) % 360; return Math.min(d, 360 - d); };
-const aur = auroraColors(light.css);
-console.log("  光环三色 =", aur.join(" "));
-check(aur.length === 3, "Siri 光环结构：两层柔光（5px/1px、12px/4px）+ 轨道光点（14px/4px，带偏移）");
-const aurHues = aur.map(c => hueOf(c.slice(0, 7)));
-const accentHue = hueOf(GREEN.accent);
-const hueDiffs = aurHues.map(h => Math.round(circular(h, accentHue)));
-console.log("  色相 =", aurHues.map(h => Math.round(h)), " 与强调色差 =", hueDiffs, " 强调色相 =", Math.round(accentHue));
-check(Math.max(...hueDiffs) >= 25, `至少一侧偏离强调色 ≥25°（${Math.max(...hueDiffs)}°），才有"多色"可言`);
-check(circular(aurHues[0], aurHues[2]) >= 40, `两侧色相之间拉开 ≥40°（${Math.round(circular(aurHues[0], aurHues[2]))}°）`);
-check(aur.map(c => c.slice(7, 9)).join(",") === `${alphaHex(.60)},${alphaHex(.32)},${alphaHex(.80)}`, `三层 α = 60/32/80（${aur.map(c => c.slice(7, 9)).join("/")}）`);
-const innerOnCard = aur.length ? over(aur[2], GREEN.content) : null;
-console.log("  光点合成到卡片 =", innerOnCard, " 对比 =", innerOnCard ? contrast(innerOnCard, GREEN.content).toFixed(2) : "n/a");
-check(!!innerOnCard && contrast(innerOnCard, GREEN.content) >= 3, `轨道光点对卡片 ≥3:1（${innerOnCard ? contrast(innerOnCard, GREEN.content).toFixed(2) : "n/a"}），转起来才看得见`);
-check(/animation: dca-aurora 4s linear infinite/.test(light.css), "4s 一圈 linear 匀速（绕圈不能 ease-in-out，否则一顿一顿）");
-const kfAt = light.css.indexOf("@keyframes dca-aurora");
-const kfEnd = kfAt < 0 ? -1 : light.css.indexOf("} }", kfAt);
-const kf = kfAt < 0 || kfEnd < 0 ? "" : light.css.slice(kfAt, kfEnd + 3);
-const stops = (kf.match(/([\d.]+)% \{/g) || []).map(x => parseFloat(x));
-console.log("  关键帧 =", stops.join(", "));
-check(stops.length === 9 && stops[0] === 0 && stops[8] === 100, `9 个关键帧（0…100，每 12.5% 一格），实际 ${stops.length} 个`);
-const offsets = [...kf.matchAll(/(-?\d+)px (-?\d+)px 14px 4px/g)].map(m => [Number(m[1]), Number(m[2])]);
-const distinct = (i) => new Set(offsets.map(o => o[i])).size;
-console.log("  轨道偏移 =", offsets.map(o => o.join(",")).join(" | "));
-check(offsets.length === 9 && distinct(0) >= 5 && distinct(1) >= 5, `光点在 x/y 上各出现 ≥5 个不同位置（x ${distinct(0)} 个 / y ${distinct(1)} 个），是真的在绕而不是原地发光`);
-check(offsets.some(([x, y]) => x === 0 && Math.abs(y) >= 8) && offsets.some(([x, y]) => Math.abs(x) >= 8 && y === 0), "上下左右都走到了（不是只沿一个轴来回）");
-const kfColors = [...new Set((kf.match(/#[0-9A-F]{8}/g) || []).map(c => c.slice(0, 7)))];
-check(kfColors.length === 3, `关键帧里只有那三种基色（${kfColors.join(" ")}）`);
-check(!/scale\(|brightness\(|translateY/.test(kf), "不缩放、不叠 brightness、不改 transform（上一版「按钮在胀」就是它）");
-// 「减少动态效果」开启时，整条光环规则不应出现
-const noMotion = run({ stored: { mode: "light", theme: "green", reducedMotion: "on" }, darkAttr: false });
-check(!/dca-aurora/.test(noMotion.css), "关闭动效时不注入光环动画");
-
 // 侧栏选中态：强调色淡染（豆沙绿 = #C3D0BC），且 token 与两条行规则同值
 const selRow = (light.css.match(/wnFoaW_selected"\] \{ background: (#[0-9A-F]{6}) !important/) || [])[1];
 console.log("  侧栏选中行 =", selRow, " 导航 token =", light.tokens["--dsw-specific-sidebar-nav-item-active"].light);
@@ -200,12 +152,6 @@ console.log("  keyword =", grab(dark.css, "shiki-token-keyword"));
 check(dark.tokens["--dsw-specific-sidebar-fill"].dark === "#090A0B", "深色侧栏基准跟随纯黑主题");
 check(grab(dark.css, "shiki-token-keyword") !== grab(light.css, "shiki-token-keyword"), "深色语法色与浅色不同");
 check(grab(dark.css, "dsw-alias-file-diff-added-bg") !== grab(light.css, "dsw-alias-file-diff-added-bg"), "深色 diff 底色与浅色不同");
-const aurDark = auroraColors(dark.css);
-const innerDarkOnCard = aurDark.length ? over(aurDark[0], "#2A313A") : null;
-console.log("  深色光环 =", aurDark.join(" "), " 内环合成到深色卡片 =", innerDarkOnCard, " 对比 =", innerDarkOnCard ? contrast(innerDarkOnCard, "#2A313A").toFixed(2) : "n/a");
-check(aurDark.length === 3 && aurDark.join(",") !== aur.join(","), "深色光环与浅色不同色（由深色强调色推导，不是写死的蓝）");
-check(!!innerDarkOnCard && contrast(innerDarkOnCard, "#2A313A") >= 3, `深色内环合成后对深色卡片 ≥3:1（当前 ${innerDarkOnCard ? contrast(innerDarkOnCard, "#2A313A").toFixed(2) : "n/a"}）`);
-check(/@keyframes dca-aurora/.test(dark.css), "深色也注入光环关键帧");
 // 深色链接色：必须来自强调色族，且和正文色明显不同（旧做法是朝白混 .62，接近正文）
 const darkLink = (dark.css.match(/\[class\*="fileLink"\][^{]*\{ color: (#[0-9A-F]{6})/) || [])[1];
 console.log("  深色链接色 =", darkLink, " 深色正文 =", dark.tokens["--dsw-alias-label-primary"].dark);

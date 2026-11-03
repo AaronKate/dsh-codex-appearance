@@ -109,6 +109,18 @@ check(grab(light.css, "shiki-token-keyword") !== "(缺失)", "关键字色存在
 check(/--dsw-alias-file-diff-added-bg:\s*#[0-9a-f]{6}/i.test(light.css), "diff 行底色已输出");
 check(/--dsw-alias-code-diff-added:\s*#[0-9a-f]{8}/i.test(light.css), "diff 叠加色带 alpha");
 check(light.tokens && light.tokens["--dsw-alias-bg-base"], "主题 token 层仍正常");
+// 发送/停止主按钮：底色必须跟主题强调色走（DSH 默认钉在 static-deepseek-500），且白图标 ≥3:1
+const fillLight = light.tokens["--dsw-alias-button-info-fill"].light;
+const fillHover = light.tokens["--dsw-alias-button-info-hover"].light;
+console.log("  button-info-fill =", fillLight, " hover =", fillHover);
+check(/^#[0-9A-F]{6}$/.test(fillLight) && fillLight !== "#4D6BFE", "主按钮底色由主题推导，不再钉在 static-deepseek");
+check(!!fillLight && contrast(fillLight, "#FFFFFF") >= 3, `白图标对底色 ≥3:1（${fillLight ? contrast(fillLight, "#FFFFFF").toFixed(2) : "n/a"}）`);
+check(!!fillHover && fillHover !== fillLight, "hover 有独立的一档（浅色加深）");
+// 对比度够的强调色必须原样使用，不能被"为了白图标"无脑压暗（绿主题白对比 5.08）
+const themed = run({ stored: { mode: "light", theme: "green", accent: "#4A7A3A", light: { accent: "#4A7A3A" } }, darkAttr: false });
+const themedFill = themed.tokens["--dsw-alias-button-info-fill"].light;
+console.log("  豆沙绿 button-info-fill =", themedFill);
+check(themedFill === "#4A7A3A", `够对比的强调色原样当底色（${themedFill}）`);
 // 行内代码（B 方案）：淡底 + 发丝描边 + 不跟代码块同字号 + 折行每行独立圆角
 check(/body :not\(pre\) > code \{[^}]*border: 1px solid #[0-9A-F]{6} !important/.test(light.css), "行内代码有发丝描边");
 check(/body :not\(pre\) > code \{[^}]*font-size: 0\.92em !important/.test(light.css), "行内代码字号按正文 0.92em");
@@ -152,6 +164,11 @@ console.log("  keyword =", grab(dark.css, "shiki-token-keyword"));
 check(dark.tokens["--dsw-specific-sidebar-fill"].dark === "#090A0B", "深色侧栏基准跟随纯黑主题");
 check(grab(dark.css, "shiki-token-keyword") !== grab(light.css, "shiki-token-keyword"), "深色语法色与浅色不同");
 check(grab(dark.css, "dsw-alias-file-diff-added-bg") !== grab(light.css, "dsw-alias-file-diff-added-bg"), "深色 diff 底色与浅色不同");
+const fillDark = dark.tokens["--dsw-alias-button-info-fill"].dark;
+const fillDarkHover = dark.tokens["--dsw-alias-button-info-hover"].dark;
+console.log("  深色 button-info-fill =", fillDark, " hover =", fillDarkHover);
+check(!!fillDark && /^#[0-9A-F]{6}$/.test(fillDark), "深色主按钮底色由深色调色板推导");
+check(!!fillDark && contrast(fillDark, "#FFFFFF") >= 3, `深色白图标对底色 ≥3:1（${fillDark ? contrast(fillDark, "#FFFFFF").toFixed(2) : "n/a"}）`);
 // 深色链接色：必须来自强调色族，且和正文色明显不同（旧做法是朝白混 .62，接近正文）
 const darkLink = (dark.css.match(/\[class\*="fileLink"\][^{]*\{ color: (#[0-9A-F]{6})/) || [])[1];
 console.log("  深色链接色 =", darkLink, " 深色正文 =", dark.tokens["--dsw-alias-label-primary"].dark);

@@ -159,12 +159,15 @@ check(!!sessColor && contrast(sessColor, sidebarGreen) >= 4.5, `会话名对侧�
 check(!!hoverColor && sessColor === mixHex(hoverColor, sidebarGreen, .18), `会话色 = 正文朝侧栏底混 18%（同 mix() 现算 ${hoverColor ? mixHex(hoverColor, sidebarGreen, .18) : "n/a"}）`);
 const projBlock = (light.css.match(/\[class\*="wnFoaW_projectRow"\] \[class\*="wnFoaW_title"\] \{[^}]*\}/) || [])[0] || "";
 const projCollapsed = (projBlock.match(/color: (#[0-9A-F]{6})/) || [])[1];
-const projOpen = (light.css.match(/\[class\*="wnFoaW_arrowOpen"\]\) \[class\*="wnFoaW_title"\] \{\s*color: (#[0-9A-F]{6});/) || [])[1];
+const projOpenBlock = (light.css.match(/\[class\*="wnFoaW_arrowOpen"\]\) \[class\*="wnFoaW_title"\] \{[^}]*\}/) || [])[0] || "";
+const projOpen = (projOpenBlock.match(/color: (#[0-9A-F]{6})/) || [])[1];
 console.log("  项目名（折叠）=", projCollapsed, " （展开）=", projOpen);
 check(!!projBlock && !/font-weight/.test(projBlock), "项目名不覆盖字重（保持原生常规字重）");
 check(!!projCollapsed && contrast(projCollapsed, sidebarGreen) >= 4.5, `折叠的项目名对侧栏底 ≥4.5:1（${projCollapsed ? contrast(projCollapsed, sidebarGreen).toFixed(2) : "n/a"}）—— 灰但要读得清`);
 check(!!projCollapsed && contrast(projCollapsed, sidebarGreen) < contrast(hoverColor, sidebarGreen), "折叠的项目名比展开态淡（灰）");
 check(!!projOpen && projOpen === hoverColor, "展开的工作区用正文色（:has(.wnFoaW_arrowOpen) 反查展开态）");
+check(/font-weight: 600/.test(projOpenBlock), "只有展开的工作区加粗（折叠保持常规字重）");
+check(!/font-weight/.test(projBlock), "折叠的工作区不加粗");
 check(/\[class\*="wnFoaW_projectRow"\]:hover \[class\*="wnFoaW_title"\]/.test(light.css), "悬停也提到正文色（可点暗示）");
 check(!!hoverColor && contrast(hoverColor, sidebarGreen) >= 7, `hover/选中回到正文色（${hoverColor ? contrast(hoverColor, sidebarGreen).toFixed(2) : "n/a"}:1）`);
 

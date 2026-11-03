@@ -166,6 +166,10 @@ check(!!projCollapsed && contrast(projCollapsed, sidebarGreen) >= 4.5, `折叠�
 check(!!projCollapsed && contrast(projCollapsed, sidebarGreen) < contrast(hoverColor, sidebarGreen), "折叠的项目名比展开态淡（灰）");
 check(!!projOpen && projOpen === hoverColor, "展开的工作区用正文色（:has(.wnFoaW_arrowOpen) 反查展开态）");
 check(/\[class\*="wnFoaW_projectRow"\]:hover \[class\*="wnFoaW_title"\]/.test(light.css), "悬停也提到正文色（可点暗示）");
+const barColor = (light.css.match(/\[class\*="wnFoaW_sessionRow"\]\[class\*="wnFoaW_selected"\] \{\s*box-shadow: inset 2px 0 0 0 (#[0-9A-F]{6});/) || [])[1];
+console.log("  选中行左缘竖条 =", barColor);
+check(!!barColor, "选中行有 2px 左缘竖条（inset shadow，不占布局）");
+check(!!barColor && contrast(barColor, sidebarGreen) >= 3, `竖条对侧栏底 ≥3:1（${barColor ? contrast(barColor, sidebarGreen).toFixed(2) : "n/a"}），是标记不是装饰`);
 check(!!hoverColor && contrast(hoverColor, sidebarGreen) >= 7, `hover/选中回到正文色（${hoverColor ? contrast(hoverColor, sidebarGreen).toFixed(2) : "n/a"}:1）`);
 
 // 1b) 文件链接可见性：路径必须是链接色 + 常驻下划线，且不再被灰色行色规则波及

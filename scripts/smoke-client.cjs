@@ -113,12 +113,11 @@ check(light.tokens && light.tokens["--dsw-alias-bg-base"], "主题 token 层仍�
 check(/body :not\(pre\) > code \{[^}]*border: 1px solid #[0-9A-F]{6} !important/.test(light.css), "行内代码有发丝描边");
 check(/body :not\(pre\) > code \{[^}]*font-size: 0\.92em !important/.test(light.css), "行内代码字号按正文 0.92em");
 check(/box-decoration-break: clone/.test(light.css), "折行时每行独立圆角");
-// 会话进行时的「停止」按钮呼吸：单环、不闪、靠图标形状判定状态
+// 会话进行时的「停止」按钮光环：三层阴影换位流动，靠图标形状判定状态
 check(/GRgSLq_primary"\]:has\(svg rect\)/.test(light.css), "停止态按钮用 :has(svg rect) 命中");
 check(/GRgSLq_primary"\]\[aria-label\*="停止"\]/.test(light.css), "再有 aria-label 兜底一条");
-check(/@keyframes dca-breathe/.test(light.css), "呼吸关键帧已注入");
-check(/animation: dca-breathe 3s/.test(light.css), "呼吸节奏 3s 正弦（慢到像呼吸，不至于像告警）");
-check(/scale\(1\.045\)/.test(light.css), "峰值放大 4.5%（≈按钮半径 +0.8px，只作陪衬）");
+check(/@keyframes dca-aurora/.test(light.css), "光环关键帧已注入");
+check(/animation: dca-aurora 5s ease-in-out infinite/.test(light.css), "5s 一轮连续流动（不是一闪一闪的告警节奏）");
 // 期望值一律用源码同一个 mix()/hexA() 现算：手写常量会差一档（#D7DDD2 vs 实际 #D7DDD1）。
 function mixHex(a, b, ratio) {
   const q = Math.max(0, Math.min(1, ratio));
@@ -131,21 +130,43 @@ function over(hex8, bg) {
   return "#" + c.map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
 }
 const GREEN = { accent: "#4A7A3A", content: "#E1E7DB" };
-const ringWanted = mixHex(GREEN.accent, "#0B2350", .42) + alphaHex(.92);
-const ringLight = (light.css.match(/0 0 0 3px (#[0-9A-F]{8})/) || [])[1];
-const ringOnCard = ringLight ? over(ringLight, GREEN.content) : null;
-console.log("  浅色环 =", ringLight, " 期望 =", ringWanted, " 合成到卡片 =", ringOnCard, " 对比 =", ringOnCard ? contrast(ringOnCard, GREEN.content).toFixed(2) : "n/a");
-check(!!ringLight && ringLight === ringWanted, `浅色环 = 强调色压深 42% × 92% α（同 mix() 现算 ${ringWanted}）`);
-check(!!ringOnCard && contrast(ringOnCard, GREEN.content) >= 4.5, `浅色环合成到卡片 ≥4.5:1（描边级；v5 的 1.76:1 就是"看不见"的根因，当前 ${ringOnCard ? contrast(ringOnCard, GREEN.content).toFixed(2) : "n/a"}）`);
-check(/0 0 0 3px #[0-9A-F]{8}, 0 0 16px 4px #[0-9A-F]{8}/.test(light.css), "峰值 = 3px 实体环 + 16px/4px 同色柔光（两层，同色相）");
-const glowLight = (light.css.match(/0 0 16px 4px (#[0-9A-F]{8})/) || [])[1];
-console.log("  浅色柔光 =", glowLight);
-check(!!glowLight && glowLight.slice(7, 9) === alphaHex(.34), `柔光 34% α（${alphaHex(.34)}），有存在感又不糊成一片`);
-check(/0 0 0 1px #[0-9A-F]{8}, 0 0 3px 0 #[0-9A-F]{8}/.test(light.css), "谷值保留 1px 发丝环（不归零，才像呼吸不像闪断）");
-check(!!ringOnCard && lum(ringOnCard) <= lum(GREEN.accent) * 0.93, `环比按钮本体暗一档（合成后 ${(lum(ringOnCard) / lum(GREEN.accent)).toFixed(2)}× 本体亮度），不会被读成"按钮变胖了"`);
-// 「减少动态效果」开启时，整条呼吸规则不应出现
+// Siri 式光环：三层同几何阴影 + 三色绕强调色色相排开 + 5s 颜色换位流动，不做缩放。
+const auroraColors = (css) => {
+  const m = css.match(/0 0 4px 1px (#[0-9A-F]{8}), 0 0 10px 3px (#[0-9A-F]{8}), 0 0 18px 6px (#[0-9A-F]{8})/);
+  return m ? [m[1], m[2], m[3]] : [];
+};
+const hueOf = (hex) => {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  if (!d) return 0;
+  if (max === r) return (((g - b) / d + (g < b ? 6 : 0)) * 60 + 360) % 360;
+  if (max === g) return ((b - r) / d + 2) * 60;
+  return ((r - g) / d + 4) * 60;
+};
+const circular = (a, b) => { const d = Math.abs(a - b) % 360; return Math.min(d, 360 - d); };
+const aur = auroraColors(light.css);
+console.log("  光环三色 =", aur.join(" "));
+check(aur.length === 3, "Siri 光环三层：内晕 4px/1px、中晕 10px/3px、外晕 18px/6px（全模糊、无硬边）");
+const aurHues = aur.map(c => hueOf(c.slice(0, 7)));
+const accentHue = hueOf(GREEN.accent);
+const hueDiffs = aurHues.map(h => Math.round(circular(h, accentHue)));
+console.log("  色相 =", aurHues.map(h => Math.round(h)), " 与强调色差 =", hueDiffs, " 强调色相 =", Math.round(accentHue));
+check(Math.max(...hueDiffs) >= 25, `至少一侧偏离强调色 ≥25°（${Math.max(...hueDiffs)}°），才是"多色流动"而不是单色圈`);
+check(circular(aurHues[0], aurHues[2]) >= 40, `两侧色相之间拉开 ≥40°（${Math.round(circular(aurHues[0], aurHues[2]))}°），三层轮换才看得出追赶`);
+check(aur.map(c => c.slice(7, 9)).join(",") === `${alphaHex(.85)},${alphaHex(.50)},${alphaHex(.26)}`, `三层 α = 85/50/26（${aur.map(c => c.slice(7, 9)).join("/")}）`);
+const innerOnCard = aur.length ? over(aur[0], GREEN.content) : null;
+console.log("  内环合成到卡片 =", innerOnCard, " 对比 =", innerOnCard ? contrast(innerOnCard, GREEN.content).toFixed(2) : "n/a");
+check(!!innerOnCard && contrast(innerOnCard, GREEN.content) >= 3, `内环对卡片 ≥3:1（${innerOnCard ? contrast(innerOnCard, GREEN.content).toFixed(2) : "n/a"}），停止态一眼认得出`);
+check(/animation: dca-aurora 5s ease-in-out infinite/.test(light.css), "5s 一轮、ease-in-out，连续流动而不是一通一闪");
+const kfAt = light.css.indexOf("@keyframes dca-aurora");
+const kf = kfAt < 0 ? "" : light.css.slice(kfAt, kfAt + 600);
+check(/0%, 100%/.test(kf) && /33%/.test(kf) && /66%/.test(kf), "三个关键帧：颜色在三层阴影之间换位（追赶）");
+const kfColors = [...new Set((kf.match(/#[0-9A-F]{8}/g) || []).map(c => c.slice(0, 7)))];
+check(kfColors.length === 3, `关键帧里只有那三种基色（${kfColors.join(" ")}）`);
+check(!/scale\(|brightness\(|translateY/.test(kf), "不缩放、不叠 brightness、不改 transform（上一版「按钮在胀」就是它）");
+// 「减少动态效果」开启时，整条光环规则不应出现
 const noMotion = run({ stored: { mode: "light", theme: "green", reducedMotion: "on" }, darkAttr: false });
-check(!/dca-breathe/.test(noMotion.css), "关闭动效时不注入呼吸动画");
+check(!/dca-aurora/.test(noMotion.css), "关闭动效时不注入光环动画");
 
 // 侧栏选中态：强调色淡染（豆沙绿 = #C3D0BC），且 token 与两条行规则同值
 const selRow = (light.css.match(/wnFoaW_selected"\] \{ background: (#[0-9A-F]{6}) !important/) || [])[1];
@@ -171,17 +192,12 @@ console.log("  keyword =", grab(dark.css, "shiki-token-keyword"));
 check(dark.tokens["--dsw-specific-sidebar-fill"].dark === "#090A0B", "深色侧栏基准跟随纯黑主题");
 check(grab(dark.css, "shiki-token-keyword") !== grab(light.css, "shiki-token-keyword"), "深色语法色与浅色不同");
 check(grab(dark.css, "dsw-alias-file-diff-added-bg") !== grab(light.css, "dsw-alias-file-diff-added-bg"), "深色 diff 底色与浅色不同");
-const ringDark = (dark.css.match(/0 0 0 3px (#[0-9A-F]{8})/) || [])[1];
-const ringDarkOnCard = ringDark ? over(ringDark, "#2A313A") : null;
-console.log("  深色环 =", ringDark, " 合成到深色卡片 =", ringDarkOnCard, " 对比 =", ringDarkOnCard ? contrast(ringDarkOnCard, "#2A313A").toFixed(2) : "n/a");
-check(!!ringDark && ringDark !== ringLight, "深色环与浅色不同色");
-check(!!ringDark && ringDark === "#9FC2FF" + alphaHex(.78), `深色环是 78% α 的 #9FC2FF（#9FC2FF${alphaHex(.78)}）`);
-check(!!ringDarkOnCard && contrast(ringDarkOnCard, "#2A313A") >= 4, `深色环合成后对深色卡片 ≥4:1（当前 ${ringDarkOnCard ? contrast(ringDarkOnCard, "#2A313A").toFixed(2) : "n/a"}）`);
-check(/@keyframes dca-breathe/.test(dark.css), "深色也注入呼吸关键帧");
-check(/0 0 0 3px #[0-9A-F]{8}, 0 0 14px 4px #[0-9A-F]{8}/.test(dark.css), "深色峰值同样是 3px 实体环 + 14px/4px 柔光");
-const glowDark = (dark.css.match(/0 0 14px 4px (#[0-9A-F]{8})/) || [])[1];
-console.log("  深色柔光 =", glowDark);
-check(!!glowDark && glowDark.slice(7, 9) === alphaHex(.28), `深色柔光 28% α（${alphaHex(.28)}）`);
+const aurDark = auroraColors(dark.css);
+const innerDarkOnCard = aurDark.length ? over(aurDark[0], "#2A313A") : null;
+console.log("  深色光环 =", aurDark.join(" "), " 内环合成到深色卡片 =", innerDarkOnCard, " 对比 =", innerDarkOnCard ? contrast(innerDarkOnCard, "#2A313A").toFixed(2) : "n/a");
+check(aurDark.length === 3 && aurDark.join(",") !== aur.join(","), "深色光环与浅色不同色（由深色强调色推导，不是写死的蓝）");
+check(!!innerDarkOnCard && contrast(innerDarkOnCard, "#2A313A") >= 3, `深色内环合成后对深色卡片 ≥3:1（当前 ${innerDarkOnCard ? contrast(innerDarkOnCard, "#2A313A").toFixed(2) : "n/a"}）`);
+check(/@keyframes dca-aurora/.test(dark.css), "深色也注入光环关键帧");
 // 深色链接色：必须来自强调色族，且和正文色明显不同（旧做法是朝白混 .62，接近正文）
 const darkLink = (dark.css.match(/\[class\*="fileLink"\][^{]*\{ color: (#[0-9A-F]{6})/) || [])[1];
 console.log("  深色链接色 =", darkLink, " 深色正文 =", dark.tokens["--dsw-alias-label-primary"].dark);

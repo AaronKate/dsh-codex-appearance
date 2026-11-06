@@ -109,6 +109,12 @@ check(grab(light.css, "shiki-token-keyword") !== "(缺失)", "关键字色存在
 check(/--dsw-alias-file-diff-added-bg:\s*#[0-9a-f]{6}/i.test(light.css), "diff 行底色已输出");
 check(/--dsw-alias-code-diff-added:\s*#[0-9a-f]{8}/i.test(light.css), "diff 叠加色带 alpha");
 check(light.tokens && light.tokens["--dsw-alias-bg-base"], "主题 token 层仍正常");
+for (const scheme of ["light", "dark"]) {
+  const surface = light.tokens["--dsw-menu-surface-fill"][scheme];
+  check(surface === light.tokens["--dsw-specific-menu"][scheme] && surface === light.tokens["--dsw-alias-menu-group-header-fill"][scheme], `${scheme} 菜单材质与吸顶标题颜色一致`);
+}
+const paperMenu = run({ stored: { mode: "light", theme: "paper" }, darkAttr: false });
+check(paperMenu.tokens["--dsw-menu-surface-fill"].light === "#F7F2E8", "米纸菜单使用主题气泡色");
 const greenBusiness = run({ stored: { mode: "light", theme: "green", light: { accent: "#4A7A3A", foreground: "#2C3228" } }, darkAttr: false });
 const businessColor = greenBusiness.tokens["--dsw-alias-state-business-primary"].light;
 const businessBg = greenBusiness.tokens["--dsw-alias-bg-layer-3"].light;

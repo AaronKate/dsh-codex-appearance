@@ -109,6 +109,14 @@ check(grab(light.css, "shiki-token-keyword") !== "(缺失)", "关键字色存在
 check(/--dsw-alias-file-diff-added-bg:\s*#[0-9a-f]{6}/i.test(light.css), "diff 行底色已输出");
 check(/--dsw-alias-code-diff-added:\s*#[0-9a-f]{8}/i.test(light.css), "diff 叠加色带 alpha");
 check(light.tokens && light.tokens["--dsw-alias-bg-base"], "主题 token 层仍正常");
+const greenBusiness = run({ stored: { mode: "light", theme: "green", light: { accent: "#4A7A3A", foreground: "#2C3228" } }, darkAttr: false });
+const businessColor = greenBusiness.tokens["--dsw-alias-state-business-primary"].light;
+const businessBg = greenBusiness.tokens["--dsw-alias-bg-layer-3"].light;
+check(contrast(businessColor, businessBg) >= 4.5, `浅色交互文字与控件底对比度 >= 4.5 (${contrast(businessColor, businessBg).toFixed(2)})`);
+check(greenBusiness.tokens["--dsw-alias-state-business-tertiary"].light !== "#D3E2FF", "交互浅底跟随主题，不使用默认蓝色");
+const otherAccent = run({ stored: { mode: "light", theme: "green", light: { accent: "#9A532B", foreground: "#2C3228" } }, darkAttr: false });
+check(otherAccent.tokens["--dsw-alias-state-business-primary"].light !== businessColor, "交互色响应自定义强调色");
+check(/_newSession"\] \{[^}]*color: #2C3228 !important/.test(greenBusiness.css), "新建会话按钮文字跟随主题前景色");
 // 发送/停止主按钮：底色必须跟主题强调色走（DSH 默认钉在 static-deepseek-500），且白图标 ≥3:1
 const fillLight = light.tokens["--dsw-alias-button-info-fill"].light;
 const fillHover = light.tokens["--dsw-alias-button-info-hover"].light;
@@ -186,6 +194,10 @@ console.log("  bg-base =", dark.tokens["--dsw-alias-bg-base"]);
 console.log("  sidebar-fill =", dark.tokens["--dsw-specific-sidebar-fill"]);
 console.log("  keyword =", grab(dark.css, "shiki-token-keyword"));
 check(dark.tokens["--dsw-specific-sidebar-fill"].dark === "#090A0B", "深色侧栏基准跟随纯黑主题");
+const darkBusiness = dark.tokens["--dsw-alias-state-business-primary"].dark;
+const darkSurface = mixHex(mixHex("#090A0B", "#DAD6D6", .12), "#DAD6D6", .16);
+check(contrast(darkBusiness, darkSurface) >= 4.5, `深色交互文字对内容卡片 >= 4.5 (${contrast(darkBusiness, darkSurface).toFixed(2)})`);
+check(dark.tokens["--dsw-alias-button-floating-hover"].dark !== "#2E363F", "深色浮动按钮悬停色跟随调色板");
 const sessDarkBlock = (dark.css.match(/\[class\*="wnFoaW_sessionRow"\]:not\(\[class\*="wnFoaW_archived"\]\)[^{]*\{[^}]*\}/) || [])[0] || "";
 const sessDark = (sessDarkBlock.match(/color: (#[0-9A-F]{6})/) || [])[1];
 console.log("  深色会话名 =", sessDark);

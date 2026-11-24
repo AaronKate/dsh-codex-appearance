@@ -25,18 +25,18 @@ Eye-comfort appearance controls for DeepSeek Harness: five light and five dark t
 
 **浅色主题（豆沙绿）**
 
-![浅色主题（豆沙绿）](assets/theme-light.png)
+![浅色主题（豆沙绿）](https://cdn.jsdelivr.net/gh/AaronKate/dsh-codex-appearance@main/assets/theme-light.png)
 
 **深色主题（墨绿）**
 
-![深色主题（墨绿）](assets/theme-dark.png)
+![深色主题（墨绿）](https://cdn.jsdelivr.net/gh/AaronKate/dsh-codex-appearance@main/assets/theme-dark.png)
 
 ## 安装
 
-从 [Releases](https://github.com/AaronKate/dsh-codex-appearance/releases) 下载 `dsh-eye-comfort-0.3.25.tgz`，执行：
+从 [Releases](https://github.com/AaronKate/dsh-codex-appearance/releases) 下载 `dsh-eye-comfort-0.3.26.tgz`，执行：
 
 ```sh
-dsh plugin --profile desktop add ./dsh-eye-comfort-0.3.25.tgz
+dsh plugin --profile desktop add ./dsh-eye-comfort-0.3.26.tgz
 ```
 
 本地开发可在仓库根目录 `npm pack` 后从 `dist/` 安装打包产物。

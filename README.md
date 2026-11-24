@@ -21,13 +21,15 @@ Eye-comfort appearance controls for DeepSeek Harness: five light and five dark t
 
 ## 截图
 
-![五套护眼主题](assets/five-themes.png)
+以下为 DeepSeek Harness 的实际界面截图（Windows 桌面端）。
 
-![冷白与微暖对比](assets/warm-tone-compare.png)
+**浅色主题（豆沙绿）**
 
-![三种暖调](assets/tone-variants.png)
+![浅色主题（豆沙绿）](assets/theme-light.png)
 
-![对比度 0 / 50 / 100](assets/contrast-levels.png)
+**深色主题（墨绿）**
+
+![深色主题（墨绿）](assets/theme-dark.png)
 
 ## 安装
 
